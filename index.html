@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <title>대전 지역 추억 지도</title>
+    <style>
+        /* 웹사이트 전체 배경 색상 */
+        body {
+            background-color: #f0f8ff; /* 밝은 하늘색 배경 */
+            margin: 0;
+            font-family: Arial, sans-serif; /* 기본 글꼴 설정 */
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* 제목 스타일 */
+        h1 {
+            text-align: center;
+            color: #333; /* 제목 글씨 색상 */
+            font-size: 2.5em; /* 제목 글씨 크기 */
+            margin-top: 20px;
+            font-weight: bold; /* 글씨 굵기 */
+        }
+
+        /* 상단 메뉴 스타일 */
+        .navbar {
+            background-color: #333; /* 메뉴바 배경 색상 */
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative; /* 추가 */
+            z-index: 1000; /* 추가 */
+        }
+
+        /* 메뉴 버튼 스타일 */
+        .navbar a {
+            color: white; /* 글자 색상 */
+            padding: 8px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        /* 메뉴 버튼 호버 시 색상 */
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        
+        /*메뉴 버튼 간격 조절*/
+        .navbar a:not(:last-child) {
+            margin-right: 20px;
+        }
+        /* 드롭다운 메뉴 컨테이너 */
+        .dropdown {
+            display: inline-block;
+            position: relative;
+        }
+
+        /* 드롭다운 내용 */
+        .dropdown-content {
+            display: none; /* 기본적으로 숨김 */
+            position: absolute;
+            right:0;
+            background-color: #333;
+            min-width: 160px;
+            z-index: 2000; /* z-index 값을 높게 설정 */
+        }
+
+        /* 드롭다운 메뉴 항목 */
+        .dropdown-content a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+
+        /* 드롭다운 메뉴 항목 호버 시 스타일 */
+        .dropdown-content a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        /* 드롭다운 메뉴 보여주기 */
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* 지도 상단 간격 추가 */
+        #map {
+            margin: 20px auto; /* 위아래로 간격을 추가하고, 가운데 정렬 */
+            width: 100%; /* 지도의 너비를 90%로 설정 */
+            height: 500px;
+            border: 2px solid #333; /* 지도 테두리 색상 */
+            border-radius: 10px; /* 지도 테두리에 둥근 모서리 */
+        }
+        /*푸터 스타일*/
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+        }
+        /* 관광지 정보 표시 영역 스타일 */
+        #place-info {
+            margin: 20px auto;
+            padding: 20px;
+            width: 90%;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background-color: #fff;
+            font-size: 1.2em;
+        }
+
+        /* 사용자 설명서 영역 스타일 */
+        #user-manual {
+            margin: 20px auto;
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background-color: #fff;
+            font-size: 1.2em;
+            display: none; /* 기본적으로 숨김 */
+        }
+
+        /* 페이지의 컨테이너 스타일 */
+        .container {
+            max-width: 1200px; /* 최대 페이지 너비 */
+            margin: 0 auto; /* 페이지를 중앙으로 정렬 */
+            padding: 20px;
+        }
+        /*푸터스타일*/
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 제목 -->
+    <h1>대전 지역 추억 지도</h1>
+
+    <!-- 상단 메뉴바 -->
+    <div class="navbar">
+        
+        <a href="#" id="introduce">Introduce</a>
+        <a href="#" id="home">Home</a>
+        <!-- 드롭다운 메뉴 -->
+        <div class="dropdown">
+            <a href="#">Menu</a>
+            <div id="dropdown" class="dropdown-content">
+                <a href="#" id="family">가족</a>
+                <a href="#" id="friend">친구</a>
+                <a href="#" id="couple">연인</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 지도 영역 -->
+        <div id="map"></div>
+        <!-- 관광지 정보가 표시될 영역 -->
+        <div id="place-info">
+            관광지 정보를 클릭하세요.
+        </div>
+        <!-- 사용자 설명서 영역 -->
+        <div id="user-manual">
+            <h2>소개</h2>
+            <p>대전광역시의 추억 지도입니다</p>
+            <p>1. Home을 눌러 지도를 열어주세요<br>
+               2. Menu를 눌러 대전에 방문하는 목적을 선택해 주세요<br>
+               3. 추천하는 관광지일수록 마커의 크기가 더 크게 표시됩니다<br>
+               4. 마커를 누르면 관광지에 대한 정보가 하단에 나타납니다</p>
+        </div>
+    </div>
+    <!--푸터 영역-->
+    <div class="footer">
+        Sejong Academy of Science and Arts
+    </div>
+    <!-- 카카오 지도 API -->
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f2f8b215f5186366e28215261ac63e37"></script>
+    <script>
+        var container = document.getElementById('map');
+        var options = {
+            // 중심 좌표를 대전으로 설정
+            center: new kakao.maps.LatLng(36.3504, 127.3845),
+            level: 7 // 지도의 확대 레벨을 조정 (7은 약간 넓은 범위)
+        };
+
+        var map = new kakao.maps.Map(container, options);
+
+        // 현재 선택된 메뉴를 저장하는 변수
+        var currentMenu = '';
+
+        // 마커가 표시될 위치 데이터(위도, 경도, 제목, 메뉴별 평점)
+        var positions = [
+            {
+                title: "대전역",
+                latlng: new kakao.maps.LatLng(36.3325, 127.4347),
+                content: `
+                    <p>대전역: 대전의 중심 기차역</p>
+                    <p></p>
+                    `,
+                ratings: {
+                    family: null,
+                    friend: null,
+                    couple: null
+                }
+            },
+            {
+                title: "한밭수목원",
+                latlng: new kakao.maps.LatLng(36.366, 127.388),
+                content: `
+                    <p>한밭수목원: 대전의 아름다운 정원</p>
+                    <p>
+                        한밭수목원은 대전 도심에 위치한 국내 최대의 인공 수목원으로, 다양한 식물 종을 관찰할 수 있는 곳입니다. 수목원은 동원과 서원으로 나뉘어 있으며, 각각의 구역에서 계절별로 색다른 자연 경관을 즐길 수 있습니다. 또한, 가족 단위의 나들이객들에게 휴식과 교육의 장소로 인기가 많습니다.</p>
+                    `,
+                ratings: {
+                    family: 4.36,
+                    friend: 4.75,
+                    couple: 4.83
+                }
+            },
+            {
+                title: "엑스포과학공원",
+                latlng: new kakao.maps.LatLng(36.3741, 127.3856),
+                content: `
+                    <p>엑스포과학공원: 과학과 자연이 만나는 장소</p>
+                    <p>엑스포 과학 공원은 1993년 대전 엑스포를 기념하여 조성된 과학 테마 공원으로, 다양한 과학 기술을 체험할 수 있는 장소입니다. 과학관, 야외 전시물, 체험관 등 다양한 시설을 통해 방문객들에게 과학에 대한 흥미를 제공합니다. 가족 단위 방문객들에게 교육적이고 즐거운 시간을 제공하는 대전의 대표적인 명소입니다.</p>
+                    `,
+                ratings: {
+                    family: 3.85,
+                    friend: 4.00,
+                    couple: 3.50
+                }
+            },
+            {
+                title: "성심당",
+                latlng: new kakao.maps.LatLng(36.3281, 127.4237),
+                content: `
+                    <p>성심당: 대전의 유명한 빵집</p>
+                    <p>성심당은 대전의 대표적인 빵집으로, 1956년에 창업해 오랜 전통을 자랑하는 곳입니다. 특히 튀김소보로와 부추빵이 인기 메뉴로 전국적으로 유명해졌습니다. 대전을 방문하는 사람들에게는 꼭 들러야 할 필수 맛집 중 하나로 손꼽힙니다.</p>
+                    `,
+                ratings: {
+                    family: 4.51,
+                    friend: 4.64,
+                    couple: 4.79
+                }
+            },
+            {
+                title: "카이스트",
+                latlng: new kakao.maps.LatLng(36.3702, 127.3613),
+                content: `
+                    <p>카이스트: 대한민국 최고의 과학기술 대학교</p>
+                    <p>카이스트(KAIST)는 1971년에 설립된 대한민국 최고의 과학기술 특성화 대학교입니다. 세계적인 연구 성과와 우수한 인재 양성으로 과학기술 분야에서 선도적인 역할을 하고 있습니다. 특히 공학, IT, AI 분야에서 국제적인 명성을 얻고 있으며, 혁신적인 연구와 교육을 제공하고 있습니다.</p>
+                    `,
+                ratings: {
+                    family: 4.33,
+                    friend: 4.35,
+                    couple: 4.14
+                }
+            },
+            {
+                title: "오월드",
+                latlng: new kakao.maps.LatLng(36.2889, 127.3978),
+                content: `
+                    <p>오월드: 대전의 대표적인 테마파크</p>
+                    <p>대전 오월드는 대전광역시에 위치한 종합 테마파크로, 동물원과 놀이공원, 플라워 랜드로 구성되어 있습니다. 가족 단위의 나들이 장소로 인기가 많으며, 다양한 동물과 놀이기구를 즐길 수 있는 곳입니다. 계절마다 아름다운 꽃밭과 테마 축제가 열려 방문객들에게 즐거운 경험을 제공합니다.</p>
+                    `,
+                ratings: {
+                    family: 2.73,
+                    friend: 3.73,
+                    couple: 2.75
+                }
+            },
+            {
+                title: "국립중앙과학관",
+                latlng: new kakao.maps.LatLng(36.3665, 127.3447),
+                content: `
+                    <p>국립중앙과학관: 과학 체험과 전시를 즐길 수 있는 곳</p>
+                    <p>대전 국립중앙과학관은 과학기술의 발전을 전시하고 교육하는 종합 과학 박물관입니다. 다양한 과학 전시물과 체험 프로그램을 통해 어린이부터 성인까지 과학에 대한 흥미를 높일 수 있는 곳입니다. 우주, 생명과학, 첨단기술 등 여러 분야의 전시와 함께 천체관측소도 운영하고 있습니다.</p>
+                    `,
+                ratings: {
+                    family: 4.46,
+                    friend: null,
+                    couple: null
+                }
+            },
+            {
+                title: "천연기념물센터",
+                latlng: new kakao.maps.LatLng(36.3677, 127.3924),
+                content: `
+                    <p>천연기념물센터: 한국의 자연유산을 보호하는 장소</p>
+                    <p>대전 천연기념물센터는 대한민국의 천연기념물과 문화유산을 보호하고 연구하는 기관입니다. 이곳에서는 다양한 천연기념물 동식물에 대한 전시와 학습 자료를 제공하여 자연유산의 중요성을 알리고 있습니다. 방문객들은 체험 프로그램과 전시물을 통해 자연유산을 직접 보고 배우는 기회를 가질 수 있습니다.</p>
+                    `,
+                ratings: {
+                    family: 4.88,
+                    friend: 5.00,
+                    couple: null
+                }
+            },
+            {
+                title: "한화생명이글스파크",
+                latlng: new kakao.maps.LatLng(36.3168, 127.4291),
+                content: `
+                    <p>한화생명이글스파크: 대전의 야구 경기장</p>
+                    <p>한화생명이글스파크는 대전에 위치한 프로야구 한화 이글스의 홈구장입니다. 1964년에 개장한 이 구장은 수용 인원이 1만 명을 넘으며, 한화 이글스 팬들의 열정적인 응원을 경험할 수 있는 장소입니다. 야구 경기 외에도 다양한 이벤트와 공연이 열려 지역 주민들에게 인기 있는 스포츠 및 문화 공간입니다.</p>
+                    `,
+                ratings: {
+                    family: 4.63,
+                    friend: 4.76,
+                    couple: 4.80
+                }
+            },
+            {
+                title: "신세계 백화점",
+                latlng: new kakao.maps.LatLng(36.3751, 127.3813),
+                content: `
+                    <p>신세계 백화점: 대전의 대표적인 쇼핑몰</p>
+                    <p>신세계 백화점 대전점은 대전에서 가장 큰 고급 쇼핑몰 중 하나로, 다양한 패션, 뷰티, 생활용품을 제공합니다. 백화점 내부에는 고급 레스토랑, 카페, 문화 센터 등 다양한 편의 시설이 있어 쇼핑과 휴식을 동시에 즐길 수 있습니다. 현대적인 디자인과 쾌적한 환경을 자랑하며, 대전 시민들에게 인기 있는 쇼핑 명소입니다.</p>
+                    `,
+                ratings: {
+                    family: 4.21,
+                    friend: 4.22,
+                    couple: null
+                }
+            },
+            {
+                title: "대전 중앙시장",
+                latlng: new kakao.maps.LatLng(36.3285, 127.4321),
+                content: `
+                    <p>대전 중앙시장: 전통 시장의 활기를 느낄 수 있는 곳</p>
+                    <p>대전 중앙시장은 대전에서 가장 오래되고 큰 전통시장으로, 다양한 먹거리와 생활용품을 합리적인 가격에 제공합니다. 수산물, 채소, 과일부터 의류, 잡화까지 다양한 상품을 만나볼 수 있어 현지 주민뿐만 아니라 관광객들에게도 인기가 많습니다. 활기찬 분위기 속에서 대전의 전통과 지역 문화를 체험할 수 있는 중요한 시장입니다.</p>
+                    `,
+                ratings: {
+                    family: 3.33,
+                    friend: null,
+                    couple: null
+                }
+            },
+            {
+                title: "아쿠아리움",
+                latlng: new kakao.maps.LatLng(36.3099, 127.4210),
+                content: `
+                    <p>아쿠아리움: 다양한 해양 생물을 관람할 수 있는 곳</p>
+                    <p>대전 아쿠아리움은 다양한 해양 생물들을 가까이에서 관찰할 수 있는 실내 전시 공간입니다. 수족관 내에는 다양한 종의 물고기뿐만 아니라 상어, 가오리 등 특별한 해양 생물도 전시되어 있어 가족 단위 방문객들에게 인기가 많습니다. 해양 생물의 생태를 배우고 체험할 수 있는 교육 프로그램도 제공됩니다.</p>
+                    `,
+                ratings: {
+                    family: 4.20,
+                    friend: 3.86,
+                    couple: 4.00
+                }
+            }
+        ];
+
+        // 마커 이미지의 경로와 크기 설정
+        var imageSrc = "http://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; // 마커 이미지 경로
+
+        // 마커 이미지 크기 설정
+        var sizeXLarge = new kakao.maps.Size(64, 69); // 가장 큰 크기
+        var sizeLarge = new kakao.maps.Size(46, 50); // 두 번째 크기
+        var sizeMedium = new kakao.maps.Size(32, 39); // 세 번째 크기
+        var sizeSmall = new kakao.maps.Size(24, 35); // 네 번째 크기
+
+        // 마커 이미지 생성
+        var markerImageXLarge = new kakao.maps.MarkerImage(imageSrc, sizeXLarge);
+        var markerImageLarge = new kakao.maps.MarkerImage(imageSrc, sizeLarge);
+        var markerImageMedium = new kakao.maps.MarkerImage(imageSrc, sizeMedium);
+        var markerImageSmall = new kakao.maps.MarkerImage(imageSrc, sizeSmall);
+
+        // 마커와 인포윈도우를 저장할 배열 생성
+        var markers = [];
+        var infoWindows = [];
+
+        // 모든 마커를 생성하고 숨김 처리
+        for (var i = 0; i < positions.length; i++) {
+            var marker = new kakao.maps.Marker({
+                position: positions[i].latlng,
+                title: positions[i].title,
+                map: null // 초기에는 마커를 숨김
+            });
+
+            // 마커를 배열에 저장
+            markers.push(marker);
+
+            // 인포윈도우 생성
+            var infoWindow = new kakao.maps.InfoWindow({
+                content: `<div style="padding:5px;font-size:14px;">${positions[i].title}</div>`
+            });
+
+            // 인포윈도우를 배열에 저장
+            infoWindows.push(infoWindow);
+
+            // 마커 클릭 이벤트 등록
+            kakao.maps.event.addListener(marker, 'click', (function(marker, infoWindow, i) {
+                return function() {
+                    // 모든 인포윈도우 닫기
+                    closeAllInfoWindows();
+
+                    // 인포윈도우 열기
+                    infoWindow.open(map, marker);
+
+                    // 현재 선택된 메뉴에 따른 평점 가져오기
+                    var rating = positions[i].ratings[currentMenu];
+
+                    // 하단의 관광지 정보 업데이트
+                    var placeInfoDiv = document.getElementById('place-info');
+                    placeInfoDiv.innerHTML = `<h2>${positions[i].title}</h2><p>${positions[i].content}</p>`;
+
+                    // 평점이 존재하면 표시
+                    if (rating !== null && rating !== undefined) {
+                        placeInfoDiv.innerHTML += `<p>평점: ${rating}점</p>`;
+                    } else {
+                        placeInfoDiv.innerHTML += `<p>평점 정보가 없습니다.</p>`;
+                    }
+                };
+            })(marker, infoWindow, i));
+        }
+
+        // 모든 인포윈도우 닫기 함수
+        function closeAllInfoWindows() {
+            for (var i = 0; i < infoWindows.length; i++) {
+                infoWindows[i].close();
+            }
+        }
+
+        // 'Home' 메뉴 클릭 이벤트 등록
+        document.getElementById('home').addEventListener('click', function(event) {
+            event.preventDefault(); // 기본 동작 막기
+            showMainContent();
+        });
+
+        // 'Introduce' 메뉴 클릭 이벤트 등록
+        document.getElementById('introduce').addEventListener('click', function(event) {
+            event.preventDefault(); // 기본 동작 막기
+            showUserManual();
+        });
+
+        // 메인 콘텐츠를 보여주는 함수
+        function showMainContent() {
+            document.getElementById('map').style.display = 'block';
+            document.getElementById('place-info').style.display = 'block';
+            document.getElementById('user-manual').style.display = 'none';
+        }
+
+        // 사용자 설명서를 보여주는 함수
+        function showUserManual() {
+            document.getElementById('map').style.display = 'none';
+            document.getElementById('place-info').style.display = 'none';
+            document.getElementById('user-manual').style.display = 'block';
+        }
+
+        // '가족' 메뉴 클릭 이벤트 등록
+        document.getElementById('family').addEventListener('click', function(event) {
+            event.preventDefault(); // 기본 동작 막기
+            currentMenu = 'family';
+            showFamilyMarkers();
+        });
+
+        // '친구' 메뉴 클릭 이벤트 등록
+        document.getElementById('friend').addEventListener('click', function(event) {
+            event.preventDefault(); // 기본 동작 막기
+            currentMenu = 'friend';
+            showFriendMarkers();
+        });
+
+        // '연인' 메뉴 클릭 이벤트 등록
+        document.getElementById('couple').addEventListener('click', function(event) {
+            event.preventDefault(); // 기본 동작 막기
+            currentMenu = 'couple';
+            showCoupleMarkers();
+        });
+
+        // 모든 마커를 숨기는 함수
+        function hideAllMarkers() {
+            for (var i = 0; i < markers.length; i++) {
+                markers[i].setMap(null);
+                infoWindows[i].close(); // 마커를 숨길 때 인포윈도우도 닫음
+            }
+        }
+
+        // '가족' 선택 시 마커 표시 및 크기 설정 함수
+        function showFamilyMarkers() {
+            hideAllMarkers(); // 모든 마커 숨김
+            showMainContent(); // 메인 콘텐츠 표시
+
+            for (var i = 0; i < markers.length; i++) {
+                var marker = markers[i];
+                var title = positions[i].title;
+
+                // 필요한 마커를 표시하고 크기 설정
+                if (title === "성심당") {
+                    marker.setMap(map);
+                    marker.setImage(markerImageXLarge);
+                } else if (["한밭수목원", "신세계 백화점", "엑스포과학공원", "국립중앙과학관", "한화생명이글스파크"].includes(title)) {
+                    marker.setMap(map);
+                    marker.setImage(markerImageLarge);
+                } else if(["카이스트","아쿠아리움","천연기념물센터","오월드","대전 중앙시장"].includes(title)) {
+                    marker.setMap(map);
+                    marker.setImage(markerImageMedium)
+                }   else {
+                    // 마커 숨김
+                    marker.setMap(null);
+                }
+            }
+        }
+
+        // '친구' 선택 시 마커 표시 및 크기 설정 함수
+        function showFriendMarkers() {
+            hideAllMarkers(); // 모든 마커 숨김
+            showMainContent(); // 메인 콘텐츠 표시
+
+            for (var i = 0; i < markers.length; i++) {
+                var marker = markers[i];
+                var title = positions[i].title;
+
+                // 필요한 마커를 표시하고 크기 설정
+                if (title === "성심당") {
+                    // 가장 큰 크기
+                    marker.setMap(map);
+                    marker.setImage(markerImageXLarge);
+                } else if (["한화생명이글스파크", "카이스트"].includes(title)) {
+                    // 두 번째로 큰 크기
+                    marker.setMap(map);
+                    marker.setImage(markerImageLarge);
+                } else if (["오월드", "신세계 백화점", "한밭수목원", "아쿠아리움"].includes(title)) {
+                    // 세 번째로 큰 크기
+                    marker.setMap(map);
+                    marker.setImage(markerImageMedium);
+                } else if (["엑스포과학공원", "천연기념물센터"].includes(title)) {
+                    // 네 번째로 큰 크기
+                    marker.setMap(map);
+                    marker.setImage(markerImageSmall);
+                } else {
+                    // 마커 숨김
+                    marker.setMap(null);
+                }
+            }
+        }
+
+        // '연인' 선택 시 마커 표시 및 크기 설정 함수
+        function showCoupleMarkers() {
+            hideAllMarkers(); // 모든 마커 숨김
+            showMainContent(); // 메인 콘텐츠 표시
+
+            for (var i = 0; i < markers.length; i++) {
+                var marker = markers[i];
+                var title = positions[i].title;
+
+                // 필요한 마커를 표시하고 크기 설정
+                if (title === "성심당") {
+                    // 가장 큰 크기
+                    marker.setMap(map);
+                    marker.setImage(markerImageXLarge);
+                } else if (["한화생명이글스파크", "한밭수목원"].includes(title)) {
+                    // 두 번째로 큰 크기
+                    marker.setMap(map);
+                    marker.setImage(markerImageLarge);
+                } else if (["아쿠아리움", "카이스트"].includes(title)) {
+                    // 세 번째로 큰 크기
+                    marker.setMap(map);
+                    marker.setImage(markerImageMedium);
+                } else if (["엑스포과학공원", "오월드"].includes(title)) {
+                    // 네 번째로 큰 크기
+                    marker.setMap(map);
+                    marker.setImage(markerImageSmall);
+                } else {
+                    // 마커 숨김
+                    marker.setMap(null);
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>
